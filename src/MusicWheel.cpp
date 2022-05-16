@@ -1088,7 +1088,7 @@ bool MusicWheel::Select()	// return true if this selection ends the screen
 	if( m_WheelState == STATE_ROULETTE_SPINNING )
 	{
 		m_WheelState = STATE_ROULETTE_SLOWING_DOWN;
-		m_iSwitchesLeftInSpinDown = ROULETTE_SLOW_DOWN_SWITCHES/2+1 + rand()%(ROULETTE_SLOW_DOWN_SWITCHES/2);
+		m_iSwitchesLeftInSpinDown = ROULETTE_SLOW_DOWN_SWITCHES/2+1 + RandomBounded(ROULETTE_SLOW_DOWN_SWITCHES/2);
 		m_fTimeLeftInState = 0.1f;
 		return false;
 	}
@@ -1361,17 +1361,17 @@ Song *MusicWheel::GetPreferredSelectionForRandomOrPortal()
 		if( i == NUM_PROBES/2 )
 			vDifficultiesToRequire.clear();
 
-		int iSelection = rand() % wid.size();
-		if( wid[iSelection].m_Type != TYPE_SONG )
+		uint32_t uSelection = RandomBounded( wid.size());
+		if( wid[uSelection].m_Type != TYPE_SONG )
 			continue;
 
-		Song* pSong = wid[iSelection].m_pSong;
+		Song* pSong = wid[uSelection].m_pSong;
 
 		// ignore these
 		if( pSong->IsCustomSong() )
 			continue;
 
-		if( !sPreferredGroup.empty() && wid[iSelection].m_sText != sPreferredGroup )
+		if( !sPreferredGroup.empty() && wid[uSelection].m_sText != sPreferredGroup )
 			continue;
 
 		// There's an off possibility that somebody might have only one song with only beginner steps.
@@ -1381,7 +1381,7 @@ Song *MusicWheel::GetPreferredSelectionForRandomOrPortal()
 		FOREACH( Difficulty, vDifficultiesToRequire, d )
 			if( !pSong->HasStepsTypeAndDifficulty(st,*d) )
 				goto try_next;
-		return wid[iSelection].m_pSong;
+		return wid[uSelection].m_pSong;
 try_next:
 		;
 	}

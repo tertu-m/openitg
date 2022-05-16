@@ -513,7 +513,7 @@ static CString GetOneBakedRandomFile( Song *pSong, bool bTryGenre = true )
 		vsNamesOut,
 		bTryGenre );
 	if( !vsNamesOut.empty() )
-		return vsNamesOut[rand()%vsNamesOut.size()];
+		return vsNamesOut[RandomBounded(vsNamesOut.size())];
 	else
 		return "";
 }

@@ -117,7 +117,7 @@ ScreenEvaluation::ScreenEvaluation( CString sClassName ) : ScreenWithMenuElement
 		
 		FOREACH_PlayerNumber( p )
 		{
-			if( rand() % 2 )
+			if( RandomBool() )
 				GAMESTATE->m_pPlayerState[p]->m_PlayerOptions.m_bTransforms[PlayerOptions::TRANSFORM_ECHO] = true;	// show "disqualified"
 
 			GAMESTATE->m_bSideIsJoined[p] = true;
@@ -140,7 +140,7 @@ ScreenEvaluation::ScreenEvaluation( CString sClassName ) : ScreenWithMenuElement
 	
 		FOREACH_PlayerNumber( p )
 		{
-			STATSMAN->m_CurStageStats.m_player[p].iActualDancePoints = rand()%3;
+			STATSMAN->m_CurStageStats.m_player[p].iActualDancePoints = RandomBounded(3);
 			STATSMAN->m_CurStageStats.m_player[p].iPossibleDancePoints = 2;
 			STATSMAN->m_CurStageStats.m_player[p].iCurCombo = 0;
 			STATSMAN->m_CurStageStats.m_player[p].UpdateComboList( 0, false );
@@ -150,18 +150,18 @@ ScreenEvaluation::ScreenEvaluation( CString sClassName ) : ScreenWithMenuElement
 			STATSMAN->m_CurStageStats.m_player[p].UpdateComboList( 25, false );
 			STATSMAN->m_CurStageStats.m_player[p].iCurCombo = 250;
 			STATSMAN->m_CurStageStats.m_player[p].UpdateComboList( 100, false );
-			if( rand()%2 )
+			if( RandomBool() )
 			{
-				STATSMAN->m_CurStageStats.m_player[p].iCurCombo = rand()%11000;
+				STATSMAN->m_CurStageStats.m_player[p].iCurCombo = RandomBounded(11000);
 				STATSMAN->m_CurStageStats.m_player[p].UpdateComboList( 110, false );
 			}
-			if( rand()%5 == 0 )
+			if( RandomBounded(5) == 0 )
 			{
 				STATSMAN->m_CurStageStats.m_player[p].bFailedEarlier = true;
 			}
-			STATSMAN->m_CurStageStats.m_player[p].iTapNoteScores[TNS_MARVELOUS] = rand()%3;
-			STATSMAN->m_CurStageStats.m_player[p].iTapNoteScores[TNS_PERFECT] = rand()%3;
-			STATSMAN->m_CurStageStats.m_player[p].iTapNoteScores[TNS_GREAT] = rand()%3;
+			STATSMAN->m_CurStageStats.m_player[p].iTapNoteScores[TNS_MARVELOUS] = RandomBounded(3);
+			STATSMAN->m_CurStageStats.m_player[p].iTapNoteScores[TNS_PERFECT] = RandomBounded(3);
+			STATSMAN->m_CurStageStats.m_player[p].iTapNoteScores[TNS_GREAT] = RandomBounded(3);
 			STATSMAN->m_CurStageStats.m_player[p].iPossibleGradePoints = 4*ScoreKeeperMAX2::TapNoteScoreToGradePoints(TNS_MARVELOUS, false);
 			STATSMAN->m_CurStageStats.m_player[p].fLifeRemainingSeconds = randomf( 90, 580 );
 		}

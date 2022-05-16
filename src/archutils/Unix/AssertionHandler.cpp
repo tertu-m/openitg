@@ -4,6 +4,7 @@
 #include "archutils/Unix/EmergencyShutdown.h"
 #include <unistd.h>
 #include <assert.h>
+#include <exception>
 
 /* We can define this symbol to catch failed assert() calls.  This is only used
  * for library code that uses assert(); internally we always use ASSERT, which
@@ -64,7 +65,7 @@ void UnexpectedExceptionHandler()
 
 void InstallExceptionHandler()
 {
-	set_terminate( UnexpectedExceptionHandler );
+	std::set_terminate( UnexpectedExceptionHandler );
 }
 
 /*

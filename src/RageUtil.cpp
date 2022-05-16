@@ -2,6 +2,7 @@
 #include "RageUtil.h"
 #include "RageLog.h"
 #include "RageFile.h"
+#include "crypto/CryptRand.h"
 
 #include <numeric>
 #include <ctime>
@@ -9,42 +10,33 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int randseed = time(NULL);
-
-// From "Numerical Recipes in C".
-float RandomFloat( int &seed )
+static uint64_t GetRandomSeed()
 {
-	const int MASK = 123459876;
-	seed ^= MASK;
+	random_init();
+	uint64_t result = 0;
+	for(int shift = 0; shift < 64; shift += 8)
+	{
+		result |= uint64_t(random_byte()) << shift;
+	}
 
-	const int IA = 16807;
-	const int IM = 2147483647;
-
-	const int IQ = 127773;
-	const int IR = 2836;
-
-	long k = seed / IQ;
-	seed = IA*(seed-k*IQ)-IR*k;
-	if( seed < 0 )
-			seed += IM;
-
-	const float AM = .999999f / IM;
-	float ans = AM * seed;
-
-	seed ^= MASK;
-	return ans;
+	return result;
 }
 
-RandomGen::RandomGen( unsigned long seed_ )
+uint64_t randseed = GetRandomSeed();
+
+RandomGen::RandomGen( uint64_t seed_ )
 {
 	seed = seed_;
-	if(seed == 0)
-		seed = time(NULL);
 }
 
-int RandomGen::operator() ( int maximum )
+RandomGen::RandomGen()
 {
-	return int(RandomFloat( seed ) * maximum);
+	seed = GetRandomSeed();
+}
+
+int32_t RandomGen::operator() ( int32_t maximum )
+{
+	return RandomBoundedSigned(seed, maximum);
 }
 
 

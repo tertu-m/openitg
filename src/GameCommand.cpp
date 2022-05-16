@@ -640,8 +640,8 @@ static HighScore MakeRandomHighScore( float fPercentDP )
 {
 	HighScore hs;
 	hs.sName = "FAKE";
-	hs.grade = (Grade)SCALE( rand()%5, 0, 4, GRADE_TIER01, GRADE_TIER05 );
-	hs.iScore = rand()%100*1000;
+	hs.grade = (Grade)SCALE( RandomBounded(5), 0, 4, GRADE_TIER01, GRADE_TIER05 );
+	hs.iScore = (Random32() >> 25)*1000; // RandomBounded(128)
 	hs.fPercentDP = fPercentDP;
 	hs.fSurviveSeconds = randomf( 30.0f, 100.0f );
 	PlayerOptions po;
@@ -650,11 +650,11 @@ static HighScore MakeRandomHighScore( float fPercentDP )
 	hs.dateTime = DateTime::GetNowDateTime();
 	hs.sPlayerGuid = Profile::MakeGuid();
 	hs.sMachineGuid = Profile::MakeGuid();
-	hs.iProductID = rand()%10;
+	hs.iProductID = Random32() >> 28; // RandomBounded(16)
 	FOREACH_TapNoteScore( tns )
-		hs.iTapNoteScores[tns] = rand() % 100;
+		hs.iTapNoteScores[tns] = Random32() >> 25;
 	FOREACH_HoldNoteScore( hns )
-		hs.iHoldNoteScores[hns] = rand() % 100;
+		hs.iHoldNoteScores[hns] = Random32() >> 25;
 	FOREACH_RadarCategory( rc )
 		hs.radarValues.m_Values.f[rc] = randomf( 0, 1 );
 

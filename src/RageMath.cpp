@@ -9,6 +9,7 @@
 #include "RageUtil.h"
 #include "RageMath.h"
 #include <float.h>
+#include <math.h>
 
 void RageVec3ClearBounds( RageVector3 &mins, RageVector3 &maxs )
 {
@@ -135,6 +136,7 @@ void RageMatrixMultiply( RageMatrix* pOut, const RageMatrix* pA, const RageMatri
 		b.m30*a.m02+b.m31*a.m12+b.m32*a.m22+b.m33*a.m32,
 		b.m30*a.m03+b.m31*a.m13+b.m32*a.m23+b.m33*a.m33 
 	);
+
 	// phew!
 //#endif
 }
@@ -532,63 +534,13 @@ void RageMatrixTranspose( RageMatrix* pOut, const RageMatrix* pIn )
 
 float RageFastSin( float x )
 {
-	// from 0 to PI
-	// sizeof(table) == 4096 == one page of memory in Windows
-	static float table[1024];
+	return sinf(x);
 
-	static bool bInited = false;
-	if( !bInited )
-	{
-		bInited = true;
-		for( unsigned i=0; i<ARRAYLEN(table); i++ )
-		{
-			float x = SCALE(i,0,ARRAYLEN(table),0.0f,PI);
-			table[i] = sinf(x);
-		}
-	}
-
-	// optimization
-	if( x == 0 )
-		return 0;
-
-	float fIndex = SCALE( x, 0.0f, PI*2, 0, ARRAYLEN(table)*2 );
-
-	// lerp using samples from the table
-	int iSampleIndex[2];
-	iSampleIndex[0] = (int)floorf(fIndex);
-	iSampleIndex[1] = iSampleIndex[0]+1;
-
-	float fRemainder = fIndex - iSampleIndex[0];
-	for( unsigned i=0; i<ARRAYLEN(iSampleIndex); i++ )
-        iSampleIndex[i] %= ARRAYLEN(table) * 2;
-
-	DEBUG_ASSERT( fRemainder>=0 && fRemainder<=1 );
-
-	float fValue[ARRAYLEN(iSampleIndex)];
-	for( unsigned i=0; i<ARRAYLEN(iSampleIndex); i++ )
-	{
-		int &iSample = iSampleIndex[i];
-		float &fVal = fValue[i];
-
-		if( iSample >= int(ARRAYLEN(table)) )	// PI <= iSample < 2*PI
-		{
-			// sin(x) == -sin(PI+x)
-			iSample -= ARRAYLEN(table);
-			DEBUG_ASSERT( iSample>=0 && iSample<ARRAYLEN(table) );
-			fVal = -table[iSample];
-		}
-		else
-		{
-			fVal = table[iSample];
-		}
-	}
-
-	return SCALE( fRemainder, 0.0f, 1.0f, fValue[0], fValue[1] );
 }
 
 float RageFastCos( float x )
 {
-	return RageFastSin( x + 0.5f*PI );
+	return cosf(x);
 }
 
 /*

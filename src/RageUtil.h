@@ -193,13 +193,108 @@ inline uint32_t Swap24LE( uint32_t n ) { return Swap24( n ); }
 inline uint16_t Swap16LE( uint16_t n ) { return Swap16( n ); }
 #endif
 
-extern int randseed;
+extern uint64_t randseed;
 
-float RandomFloat( int &seed );
+inline float FixedToFloat(const uint32_t fixed)
+{
+	union {uint32_t src; float dest;} pun;
+	pun.src = (fixed >> 6) | 0x3F800000U;
+	return pun.dest - 1.0f;
+}
+
+//The famous wyrand64 random number generator.
+//I'm discarding 32 bits from it for reasons.
+inline uint32_t Random32(uint64_t &seed)
+{
+	seed += 0xA0761D6478BD642FULL;
+	uint64_t morphed = seed ^ 0xE7037ED1A0B428DBULL;
+	morphed *= (morphed>>32)|(morphed<<32);
+	const uint64_t result = (seed*((seed>>32)|(seed<<32)))^((morphed>>32)|(morphed<<32));
+	return uint32_t(result);
+}
+
+inline uint32_t RandomBounded(uint64_t &seed, const uint32_t bound)
+{
+	uint32_t rawRandom = Random32(seed);
+	uint64_t scaledRandom = uint64_t(rawRandom) * uint64_t(bound);
+	uint32_t fraction = uint32_t(scaledRandom);
+
+	if (fraction < bound)
+	{
+		uint32_t scaledLimit = UINT32_MAX / bound;
+		while (fraction < scaledLimit)
+		{
+				rawRandom = Random32(seed);
+				scaledRandom = uint64_t(rawRandom) * uint64_t(bound);
+				fraction = uint32_t(scaledRandom);
+		}
+	}
+
+	return scaledRandom >> 32;
+
+}
+
+inline int32_t RandomBoundedSigned(uint64_t &seed, const int32_t maximum)
+{
+	bool maximumWasNegative = maximum < 0;
+	uint32_t bound = uint32_t(maximumWasNegative ? int64_t(-maximum) : maximum);
+
+	int32_t result = int32_t(RandomBounded(seed, bound));
+	return maximumWasNegative ? -result : result;
+}
+
+// Returns an integer between nLow and nHigh inclusive
+inline int32_t RandomInt(int32_t nLow, int32_t nHigh)
+{
+	uint32_t difference = nHigh - nLow;
+	return nLow + RandomBounded(randseed, difference+1);
+}
+
+inline float RandomFloatEx(uint64_t &seed)
+{
+	return FixedToFloat(Random32(seed));	
+}
+
+inline bool RandomBool(uint64_t &seed)
+{
+	return bool(Random32(seed) >> 31);
+}
+
+template <class T>
+inline T RandomElement(uint64_t &seed, const vector<T> vec)
+{
+	return vec[RandomBounded(seed, vec.size())];
+}
+
+template<class T>
+inline T RandomElement(const vector<T> vec)
+{
+	return RandomElement(randseed, vec);
+}
+
+inline bool RandomBool()
+{
+	return RandomBool(randseed);
+}
+
+inline uint32_t Random32()
+{
+	return Random32(randseed);
+}
 
 inline float RandomFloat()
 {
-	return RandomFloat( randseed );
+	return RandomFloatEx( randseed );
+}
+
+inline uint32_t RandomBounded(const uint32_t bound)
+{
+	return RandomBounded(randseed, bound);
+}
+
+inline int32_t RandomBoundedSigned(const int32_t bound)
+{
+	return RandomBoundedSigned(randseed, bound);
 }
 
 // Returns a float between dLow and dHigh inclusive
@@ -208,20 +303,15 @@ inline float RandomFloat(float fLow, float fHigh)
 	return SCALE( RandomFloat(), 0.0f, 1.0f, fLow, fHigh );
 }
 
-// Returns an integer between nLow and nHigh inclusive
-inline int RandomInt(int nLow, int nHigh)
-{
-	return int( RandomFloat() * (nHigh - nLow + 1) + nLow );
-}
-
 /* Alternative: */
 class RandomGen
 {
-	int seed;
+	uint64_t seed;
 
 public:
-	RandomGen( unsigned long seed = 0 );
-	int operator() ( int maximum = INT_MAX-1 );
+	RandomGen( uint64_t seed );
+	RandomGen();
+	int32_t operator() ( int32_t maximum = INT32_MAX - 1 );
 };
 
 

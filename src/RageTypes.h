@@ -173,18 +173,10 @@ public:
  * incorrect, the first and/or last values may be biased. */
 inline unsigned char FTOC(float a)
 {
-        /* lfintf is much faster than C casts.  We don't care which way negative values
-         * are rounded, since we'll clamp them to zero below.  Be sure to truncate (not
-         * round) positive values.  The highest value that should be converted to 1 is
-         * roughly (1/256 - 0.00001); if we don't truncate, values up to (1/256 + 0.5)
-         * will be converted to 1, which is wrong. */
-        int ret = lrintf(a*256.f - 0.5f);
 
         /* Benchmarking shows that clamping here, as integers, is much faster than clamping
          * before the conversion, as floats. */
-        if( ret<0 ) return 0;
-        else if( ret>255 ) return 255;
-        else return (unsigned char) ret;
+        return (unsigned char)clamp(a*256.f - 0.5f, 0.0f, 255.0f);
 }
 
 /* Color type used only in vertex lists.  OpenGL expects colors in
@@ -201,7 +193,13 @@ public:
 	RageVColor() { }
 	RageVColor(const RageColor &rc) { *this = rc; }
 	RageVColor &operator= (const RageColor &rc) {
-		r = FTOC(rc.r); g = FTOC(rc.g); b = FTOC(rc.b); a = FTOC(rc.a);
+        #define RERANGE(x) (256.0f*(x)-0.5f)
+        #define TOINT(x)   (int(x))
+        float fr, fg, fb, fa;
+		fr = RERANGE(rc.r); fg = RERANGE(rc.g); fb = RERANGE(rc.b); fa = RERANGE(rc.a);
+        b = TOINT(fb); g = TOINT(fg); r = TOINT(fr); a = TOINT(fa);
+        #undef RERANGE
+        #undef TOINT
 		return *this;
 	}
 };

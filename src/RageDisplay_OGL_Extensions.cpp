@@ -1,7 +1,5 @@
 #include "global.h"
 
-#define __glext_h_
-
 #if defined(WIN32)
 #include <windows.h>
 #endif
@@ -15,9 +13,6 @@
 # include <OpenGL/gl.h>
 # include <OpenGL/glu.h>
 #endif
-
-#undef __glext_h_
-#include "glext.h"
 
 #include "RageDisplay_OGL_Extensions.h"
 #include "RageLog.h"
@@ -93,8 +88,8 @@ void GLExt_t::Load( LowLevelWindow *pWind )
 
 	if( HasExtension("GL_EXT_paletted_texture") )
 	{
-		glColorTableEXT = (PFNGLCOLORTABLEPROC) pWind->GetProcAddress("glColorTableEXT");
-		glGetColorTableParameterivEXT = (PFNGLCOLORTABLEPARAMETERIVPROC) pWind->GetProcAddress("glGetColorTableParameterivEXT");
+		glColorTableEXT = (PFNGLCOLORTABLESGIPROC) pWind->GetProcAddress("glColorTableEXT");
+		glGetColorTableParameterivEXT = (PFNGLCOLORTABLEPARAMETERIVSGIPROC) pWind->GetProcAddress("glGetColorTableParameterivEXT");
 	}
 
 	if( HasExtension("GL_ARB_multitexture") )

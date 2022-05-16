@@ -53,8 +53,7 @@ static const int g_keys[] =
 
 int GetRandomKeyboadKey()
 {
-	int index = rand()%ARRAYLEN(g_keys);
-	return g_keys[index];
+	return g_keys[RandomBounded(ARRAYLEN(g_keys))];
 }
 
 

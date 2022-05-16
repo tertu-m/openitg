@@ -3,6 +3,7 @@
 #include "GameState.h"
 #include "IniFile.h"
 #include "RageMath.h"
+#include "RageUtil.h"
 #include "song.h"
 #include "ActorCollision.h"
 #include "Sprite.h"
@@ -344,7 +345,7 @@ void BGAnimationLayer::LoadFromAniLayerFile( const CString& sPath )
 
 	if( sHint.find("startonrandomframe") != CString::npos )
 		for( unsigned i=0; i<m_SubActors.size(); i++ )
-			m_SubActors[i]->SetState( rand()%m_SubActors[i]->GetNumStates() );
+			m_SubActors[i]->SetState( RandomBounded(m_SubActors[i]->GetNumStates()) );
 
 	if( sHint.find("dontanimate") != CString::npos )
 		for( unsigned i=0; i<m_SubActors.size(); i++ )
@@ -548,7 +549,7 @@ void BGAnimationLayer::LoadFromNode( const CString& sDir, const XNode* pNode )
 	if( bStartOnRandomFrame )
 	{
 		for( unsigned i=0; i<m_SubActors.size(); i++ )
-			m_SubActors[i]->SetState( rand()%m_SubActors[i]->GetNumStates() );
+			m_SubActors[i]->SetState( RandomBounded(m_SubActors[i]->GetNumStates()) );
 	}
 }
 

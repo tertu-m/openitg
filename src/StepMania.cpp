@@ -1098,8 +1098,6 @@ int main(int argc, char* argv[])
 	/* This requires PREFSMAN, for g_bShowLoadingWindow. */
 	LoadingWindow *loading_window = LoadingWindow::Create();
 
-	srand( time(NULL) );	// seed number generator
-
 	/* Do this early, so we have debugging output if anything else fails.  LOG and
 	 * Dialog must be set up first.  It shouldn't take long, but it might take a
 	 * little time; do this after the LoadingWindow is shown, since we don't want

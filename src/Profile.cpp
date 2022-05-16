@@ -65,7 +65,8 @@ CString Profile::MakeGuid()
 {
 	// Does the RNG need to be inited and seeded every time?
 	random_init();
-	random_add_noise( "ai8049ujr3odusj" );
+	//Adding "entropy" that is a constant string every time is actively harmful.
+	//random_add_noise( "ai8049ujr3odusj" );
 	
 	CString s;
 	for( unsigned i=0; i<GUID_SIZE_BYTES; i++ )

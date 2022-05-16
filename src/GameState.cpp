@@ -222,8 +222,8 @@ void GameState::Reset()
 
 	NOTESKIN->RefreshNoteSkinData( this->m_pCurGame );
 
-	m_iGameSeed = rand();
-	m_iStageSeed = rand();
+	m_iGameSeed = RandomBounded(INT32_MAX);
+	m_iStageSeed = RandomBounded(INT32_MAX);
 
 	m_pCurSong.Set( GetDefaultSong() );
 	m_pPreferredSong = NULL;
@@ -787,7 +787,7 @@ void GameState::ResetStageStatistics()
 
 	// Reset the round seed.  Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
-	GAMESTATE->m_iStageSeed = rand();
+	GAMESTATE->m_iStageSeed = RandomBounded(INT32_MAX);
 
 	ResetOriginalSyncData();
 }
@@ -1465,7 +1465,7 @@ Character* GameState::GetRandomCharacter()
 	vector<Character*> apCharacters;
 	GetCharacters( apCharacters );
 	if( apCharacters.size() )
-		return apCharacters[rand()%apCharacters.size()];
+		return apCharacters[RandomBounded(apCharacters.size())];
 	else
 		return GetDefaultCharacter();
 }

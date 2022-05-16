@@ -1,6 +1,7 @@
 #include "global.h"
 #include "VirtualMemory.h"
 #include "RageLog.h"
+#include "RageUtil.h"
 #include <new>
 
 VirtualMemoryManager vmem_Manager;
@@ -296,7 +297,7 @@ bool VirtualMemoryManager::DecommitLRU()
 	LockMut(vmemMutex);
 
 	// choose random LRU
-	pageLRU = rand() % totalPages;
+	pageLRU = RandomBounded(totalPages);
 
 	for(unsigned long i = 0; i < totalPages; i++)
 	{

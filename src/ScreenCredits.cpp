@@ -194,7 +194,7 @@ ScreenCredits::ScreenCredits( CString sName ) : ScreenAttract( sName )
 			Song* pSong = NULL;
 			for( int j=0; j<50; j++ )
 			{
-				pSong = arraySongs[ rand()%arraySongs.size() ];
+				pSong = RandomElement(arraySongs);
 				if( pSong->HasBackground() )
 					break;
 			}

@@ -1,7 +1,5 @@
 #include "global.h"
 
-/* ours may be more up-to-date */
-#define __glext_h_
 
 #if defined(WIN32)
 #include <windows.h>
@@ -18,9 +16,6 @@
 # include <OpenGL/gl.h>
 # include <OpenGL/glu.h>
 #endif
-
-#undef __glext_h_
-#include "glext.h"
 
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"

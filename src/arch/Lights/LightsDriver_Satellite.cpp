@@ -50,7 +50,7 @@ static uint8_t satellite_init[NUM_SATELLITE_INIT_PACKETS][7]={
 //Satellite version string is:
 //82 00 02 00 2C 05 01 00 00 00 01 00 02 44 44 52 53 41 75 67 20 32 35 20 32 30 30 38 00 00 00 00 00 31 34 3A 32 38 3A 34 35 00 00 00 00 00 00 00 00 20 
 //In ascii that is:
-//‚...,........DDRSAug 25 2008.....14:28:45........ 
+//ï¿½...,........DDRSAug 25 2008.....14:28:45........ 
 {0x01, 0x00, 0x02, 0x00, 0x00, 0x03}, //get version of device 1
 {0x02, 0x00, 0x02, 0x00, 0x00, 0x04}, //get version of device 2
 {0x03, 0x00, 0x02, 0x00, 0x00, 0x05}, //get version of device 3
@@ -395,7 +395,7 @@ void LightsDriver_Satellite::UpdateLightsSatellite()
 		neon_switch=true;
 		neon_switch_count%=3;
 		pNeon=neon;
-		randBase=rand() % 3;
+		randBase=RandomBounded(3);
 	}
 
 	#ifdef PRODUCT_ID_BARE

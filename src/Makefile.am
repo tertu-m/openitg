@@ -7,12 +7,12 @@ noinst_PROGRAMS = $(TESTS)
 endif
 
 AM_LDFLAGS = $(LDFLAGS)
-AM_CXXFLAGS = $(CXXFLAGS) -O0 -g3
+AM_CXXFLAGS = $(CXXFLAGS) -std=gnu++03 -O0 -g3
 AM_CFLAGS = $(CFLAGS)
 
 # Relax inlining; the default of 600 takes way too long to compile and
 # generates enormous output.
-AM_CXXFLAGS += -finline-limit=300
+#AM_CXXFLAGS += -finline-limit=300
 
 AM_CXXFLAGS += $(XCFLAGS) -I$(srcdir)/libtomcrypt/src/headers -I$(srcdir)/libtommath -I$(srcdir)/arch/COM
 

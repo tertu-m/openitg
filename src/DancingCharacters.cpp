@@ -2,6 +2,7 @@
 #include "DancingCharacters.h"
 #include "RageDisplay.h"
 #include "RageMath.h"
+#include "RageUtil.h"
 #include "GameState.h"
 #include "song.h"
 #include "Character.h"
@@ -175,7 +176,7 @@ void DancingCharacters::LoadNextSong()
 			m_pCharacter[p]->PlayAnimation( "rest" );
 }
 
-int Neg1OrPos1() { return rand()%2 ? -1 : +1; }
+int Neg1OrPos1() { return (Random32() >> 31) ? -1 : +1; }
 
 void DancingCharacters::Update( float fDelta )
 {
@@ -228,7 +229,7 @@ void DancingCharacters::Update( float fDelta )
 	// time for a new sweep?
 	if( GAMESTATE->m_fSongBeat > m_fThisCameraEndBeat )
 	{
-		if( (rand()%5) >= 2 )
+		if( RandomBounded(5) >= 2 )
 		{
 			// sweeping camera
 			m_CameraDistance = CAMERA_SWEEP_DISTANCE + RandomInt(-1,1) * CAMERA_SWEEP_DISTANCE_VARIANCE;

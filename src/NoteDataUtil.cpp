@@ -932,7 +932,6 @@ static void GetTrackMapping( StepsType st, NoteDataUtil::TrackMapping tt, int Nu
 			iTakeFromTrack[t] = NumTracks-t-1;
 		break;
 	case NoteDataUtil::shuffle:
-	case NoteDataUtil::super_shuffle:		// use shuffle code to mix up HoldNotes without creating impossible patterns
 		{
 			// TRICKY: Shuffle so that both player get the same shuffle mapping
 			// in the same round.
@@ -981,77 +980,109 @@ static void GetTrackMapping( StepsType st, NoteDataUtil::TrackMapping tt, int Nu
 	}
 }
 
-static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
+static void SuperShuffleNotes( NoteData &inout, int iStartIndex, int iEndIndex )
 {
-	/*
-	 * We already did the normal shuffling code above, which did a good job
-	 * of shuffling HoldNotes without creating impossible patterns.
-	 * Now, go in and shuffle the TapNotes per-row.
-	 *
-	 * This is only called by NoteDataUtil::Turn.
-	 */
+	int iNumTracks = inout.GetNumTracks();
+
+	// Stores the list of tracks that can have notes placed into them.
+	// This will be shuffled so that notes can be placed in different tracks.
+	vector<int> viTargetTracks;
+	// Stores the list of tap notes that need to be placed.
+	vector<TapNote> vtnTargetTaps;
+	viTargetTracks.reserve(iNumTracks);
+	vtnTargetTaps.reserve(iNumTracks);
+
+	vector<int> viHoldEndRows;
+	viHoldEndRows.resize(iNumTracks);
+	fill(viHoldEndRows.begin(), viHoldEndRows.end(), -1);
+
+	// A "free track" is a track that is not part of a hold and is therefore
+	// free to be shuffled into.
+	int iFreeTracks = iNumTracks;
+
+	RandomGen rng;
+
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE( inout, r, iStartIndex, iEndIndex )
 	{
-		for( int t1=0; t1<inout.GetNumTracks(); t1++ )
+		viTargetTracks.clear();
+		vtnTargetTaps.clear();
+		int iActualTaps = 0;
+
+		for( int track=0; track<iNumTracks; track++ )
 		{
-			const TapNote tn1 = inout.GetTapNote(t1, r);
+			int iHoldEndRow = viHoldEndRows[track];
+
+			// Check if this track is actually still occupied by a hold
+			if(iHoldEndRow != -1)
+			{
+				if (r > iHoldEndRow)
+				{
+					iHoldEndRow = -1;
+					viHoldEndRows[track] = iHoldEndRow;
+					iFreeTracks++;
+				}
+			}
+
+			const TapNote tn1 = inout.GetTapNote(track, r);
 			switch( tn1.type )
 			{
-			case TapNote::empty:
-			case TapNote::hold_head:
 			case TapNote::hold_tail:
+				ASSERT_M(0, ssprintf("saw a hold_tail during SuperShuffleNotes (row %d, track %d)", r, track));
+
+				//if asserts are off, delete it and treat it like an empty note
+				//(if they are on, this code is not reachable)
+				inout.SetTapNote(track, r, TAP_EMPTY);
+				//[[fallthrough]];
+			case TapNote::empty:
+				//Empty tap notes don't get directly placed in the shuffle table.
+				//Instead, if they aren't in a hold, they get added to the list
+				//of selectable tracks. Later on, new empty tap notes will be
+				//created to pad the list of taps out to the required number.
+				if( iHoldEndRow == -1 )
+					viTargetTracks.push_back(track);
+				break;
 			case TapNote::autoKeysound:
-				continue;	// skip
 			case TapNote::tap:
 			case TapNote::mine:
 			case TapNote::attack:
-				break;	// shuffle this
+			case TapNote::hold_head:
+				vtnTargetTaps.push_back(tn1);
+				iActualTaps++;
+
+				if (iHoldEndRow == -1 )
+					viTargetTracks.push_back(track);
+				else
+				{
+					// This track won't be part of the shuffle table, so if it
+					// is not cleared now it will not get cleared later.
+					inout.SetTapNote(track, r, TAP_EMPTY);
+				}
+				break;
 			default:
 				ASSERT(0);
 			}
+		}
 
-#if _DEBUG
-			ASSERT_M( !inout.IsHoldNoteAtBeat(t1,r), ssprintf("There is a tap.type = %d inside of a hold at row %d", tn1.type, r) );
-#endif
+		// Do the padding described above.
+		for(int i = iActualTaps; i < iFreeTracks; i++)
+			vtnTargetTaps.push_back(TAP_EMPTY);
 
-			// Probe for a spot to swap with.
-			set<int> vTriedTracks;
-			for( int i=0; i<4; i++ )	// probe max 4 times
+		random_shuffle(viTargetTracks.begin(), viTargetTracks.end(), rng);
+
+		// Go through the tracks in their shuffled order and drop tap notes
+		for(int i = 0; i < viTargetTracks.size(); i++)
+		{
+			const int targetTrack = viTargetTracks[i];
+			const TapNote current_tn = vtnTargetTaps[i];
+			inout.SetTapNote(targetTrack, r, current_tn);
+
+			// If it's a hold, mark this track occupied by a hold until its end
+			if( current_tn.type == TapNote::hold_head )
 			{
-				int t2 = rand() % inout.GetNumTracks();
-				if( vTriedTracks.find(t2) != vTriedTracks.end() )	// already tried this track
-					continue;	// skip
-				vTriedTracks.insert( t2 );
-
-				// swapping with ourself is a no-op
-				if( t1 == t2 )
-					break;	// done swapping
-
-				const TapNote tn2 = inout.GetTapNote(t2, r);
-				switch( tn2.type )
-				{
-				case TapNote::hold_head:
-				case TapNote::hold_tail:
-				case TapNote::autoKeysound:
-					continue;	// don't swap with these
-				case TapNote::empty:
-				case TapNote::tap:
-				case TapNote::mine:
-				case TapNote::attack:
-					break;	// ok to swap with this
-				default:
-					ASSERT(0);
-				}
-
-				// don't swap into the middle of a hold note
-				if( inout.IsHoldNoteAtBeat(t2,r) )
-					continue;
-
-				// do the swap
-				inout.SetTapNote(t1, r, tn2);
-				inout.SetTapNote(t2, r, tn1);
-				
-				break;	// done swapping
+				ASSERT_M(viHoldEndRows[targetTrack] == -1, 
+					ssprintf("tried to insert a hold into another hold (row %d, track %d)", r, targetTrack));
+				iFreeTracks--;
+				viHoldEndRows[targetTrack] = r + current_tn.iDuration;
 			}
 		}
 	}
@@ -1060,14 +1091,19 @@ static void SuperShuffleTaps( NoteData &inout, int iStartIndex, int iEndIndex )
 
 void NoteDataUtil::Turn( NoteData &inout, StepsType st, TrackMapping tt, int iStartIndex, int iEndIndex )
 {
-	int iTakeFromTrack[MAX_NOTE_TRACKS];	// New track "t" will take from old track iTakeFromTrack[t]
-	GetTrackMapping( st, tt, inout.GetNumTracks(), iTakeFromTrack );
-
 	NoteData tempNoteData;
-	tempNoteData.LoadTransformed( inout, inout.GetNumTracks(), iTakeFromTrack );
-
 	if( tt == super_shuffle )
-		SuperShuffleTaps( tempNoteData, iStartIndex, iEndIndex );
+	{
+		tempNoteData.CopyAll(inout);
+		SuperShuffleNotes( tempNoteData, iStartIndex, iEndIndex );
+	}
+	else
+	{
+		int iTakeFromTrack[MAX_NOTE_TRACKS];	// New track "t" will take from old track iTakeFromTrack[t]
+		GetTrackMapping( st, tt, inout.GetNumTracks(), iTakeFromTrack );
+		tempNoteData.LoadTransformed( inout, inout.GetNumTracks(), iTakeFromTrack );
+	}
+
 
 	inout.CopyAll( tempNoteData );
 }
@@ -1892,7 +1928,7 @@ void NoteDataUtil::AddTapAttacks( NoteData &nd, Song* pSong )
 			TapNote::attack,
 			TapNote::SubType_invalid,
 			TapNote::original, 
-			szAttacks[rand()%ARRAYLEN(szAttacks)],
+			szAttacks[RandomBounded(ARRAYLEN(szAttacks))],
 			15.0f, 
 			false,
 			0 );

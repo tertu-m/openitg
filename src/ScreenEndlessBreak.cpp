@@ -24,7 +24,7 @@ ScreenEndlessBreak::ScreenEndlessBreak( CString sName ) : Screen( sName )
 			PlayerNumber pn;
 			do
 			{
-				pn = (PlayerNumber)(rand()%NUM_PLAYERS);
+				pn = (PlayerNumber)(RandomBounded(NUM_PLAYERS));
 				if( GAMESTATE->IsPlayerEnabled(pn) && (GAMESTATE->m_pCurCharacters[pn] != NULL) )
 				{
 					m_sprBreakPicture.LoadTABreakFromCharacter( GAMESTATE->m_pCurCharacters[pn] );

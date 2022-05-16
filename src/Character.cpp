@@ -26,7 +26,6 @@ bool Character::Load( CString sCharDir )
 	return true;
 }
 
-
 CString GetRandomFileInDir( CString sDir )
 {
 	CStringArray asFiles;
@@ -34,7 +33,7 @@ CString GetRandomFileInDir( CString sDir )
 	if( asFiles.empty() )
 		return "";
 	else
-		return asFiles[rand()%asFiles.size()];
+		return RandomElement(asFiles);
 }
 
 

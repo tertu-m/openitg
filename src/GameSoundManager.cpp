@@ -248,7 +248,7 @@ static void DoPlayOnceFromDir( CString sPath )
 	if( arraySoundFiles.empty() )
 		return;
 
-	int index = rand() % arraySoundFiles.size();
+	uint32_t index = RandomBounded(arraySoundFiles.size());
 	SOUNDMAN->PlayOnce( sPath + arraySoundFiles[index] );
 }
 

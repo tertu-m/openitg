@@ -66,7 +66,7 @@ void ScreenJukebox::SetSong()
 		if( vSongs.size() == 0 )
 			return;
 
-		Song* pSong = vSongs[rand()%vSongs.size()];
+		Song* pSong = RandomElement(vSongs);
 
 		if( !pSong->HasMusic() )
 			continue;	// skip
@@ -75,7 +75,7 @@ void ScreenJukebox::SetSong()
 		if( !pSong->ShowInDemonstrationAndRanking() )
 			continue;	// skip
 
-		Difficulty dc = vDifficultiesToShow[ rand()%vDifficultiesToShow.size() ];
+		Difficulty dc = RandomElement(vDifficultiesToShow);
 		Steps* pSteps = pSong->GetStepsByDifficulty( GAMESTATE->GetCurrentStyle()->m_StepsType, dc );
 
 		if( pSteps == NULL )
@@ -138,7 +138,7 @@ void ScreenJukebox::SetSong()
 
 			if( !apOptions.empty() )
 			{
-				int iIndex = rand()%apOptions.size();
+				int iIndex = RandomBounded(apOptions.size());
 				m_pCourseEntry = apOptions[iIndex];
 				Course *pCourse = apPossibleCourses[iIndex]; 
 			
